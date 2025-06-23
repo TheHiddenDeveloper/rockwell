@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Clock, Wifi, WifiOff, MapPin, Database } from 'lucide-react';
+import NetworkDiagnostics from '@/components/NetworkDiagnostics';
+import OfflineSync from '@/components/OfflineSync';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AlertFilters from '@/components/AlertFilters';
@@ -34,6 +36,30 @@ const Index = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'delayed' | 'critical'>('all');
   const [isAutoRefreshEnabled, setIsAutoRefreshEnabled] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // Add network and sync state to the main state
+  const [networkHealth, setNetworkHealth] = useState({
+    signalStrength: 100,
+    deadZones: [] as DeadZone[],
+    lastFailure: null
+  });
+
+  useEffect(() => {
+    // Update network health periodically
+    const updateNetworkHealth = () => {
+      // In a real implementation, this would fetch from your backend
+      setNetworkHealth(prev => ({
+        ...prev,
+        signalStrength: Math.floor(Math.random() * 100),
+        deadZones: generateDeadZones(),
+        lastFailure: new Date().toISOString()
+      }));
+    };
+
+    updateNetworkHealth();
+    const interval = setInterval(updateNetworkHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Mock data generator
   const generateMockData = (): TruckData[] => {
