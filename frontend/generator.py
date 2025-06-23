@@ -1,15 +1,19 @@
-# data_generator.py
+# generator.py
 import sqlite3
 import random
 import time
-from datetime import datetime
-from datetime import timezone
+from datetime import datetime, timezone
+
+
+
+DB_PATH = "../backend/db.sqlite3"  # adjust if needed
+
 import os
+print("[DEBUG] Using DB path:", os.path.abspath(DB_PATH))
 
-DB_PATH = os.path.abspath("../backend/db.sqlite3")  # adjust path if needed
 
-TRUCK_IDS = ["T101", "T203", "T305", "T407"]
-EVENT_TYPES = ["fatigue", "location", "engine", "idle"]
+TRUCK_IDS = ['T201', 'T202', 'T203', 'T204']
+EVENT_TYPES = ['loading', 'unloading', 'idle', 'moving']
 
 def insert_fake_event():
     truck = random.choice(TRUCK_IDS)
@@ -18,19 +22,27 @@ def insert_fake_event():
 
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
+    # Insert into main events table
     c.execute("""
-        INSERT INTO events (truck, event, timestamp, synced, alert)
-        VALUES (?, ?, ?, 0, 0)
+        INSERT INTO events (truck, event, timestamp)
+        VALUES (?, ?, ?)
     """, (truck, event, timestamp))
+
+    # Insert into audit log table
+    c.execute("""
+        INSERT INTO event_logs (truck, event, timestamp)
+        VALUES (?, ?, ?)
+    """, (truck, event, timestamp))
+
     conn.commit()
     conn.close()
-
     print(f"[GENERATOR] Inserted → {truck} | {event} | {timestamp}")
 
 def main():
     while True:
         insert_fake_event()
-        time.sleep(15)  # Every 15 seconds
+        time.sleep(5)
 
 if __name__ == "__main__":
     main()
